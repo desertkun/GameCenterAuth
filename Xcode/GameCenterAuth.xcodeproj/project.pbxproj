@@ -214,6 +214,7 @@
 			buildSettings = {
 				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
 				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "-fembed-bitcode";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -224,6 +225,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
+				OTHER_CFLAGS = "-fembed-bitcode";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -249,6 +251,7 @@
 				D10DC1EE1CFC56270007551B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

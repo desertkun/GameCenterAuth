@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Runtime.InteropServices;
 
@@ -29,7 +29,7 @@ namespace Online
         #if (UNITY_IOS)
             GenerateIdentityVerificationSignature(OnSucceeded, OnFailed);
         #else
-            OnFailed.Invoke("GameCenter authentification is only available for iOS");
+            OnFailed.Invoke("GameCenter authentication is only available for iOS");
         #endif
         }
     }

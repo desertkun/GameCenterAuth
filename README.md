@@ -6,7 +6,7 @@ Unity Native implementation for Game Center server-side validation. Make possibl
 2. Authentificate using unity's standard method `Social.localUser.Authenticate` from package `UnityEngine.SocialPlatforms.GameCenter`.
 3. Call `GameCenterSignature.Generate` with `OnSucceeded` and `OnFailed` callbacks.
 4. In case of success, pass arguments from `OnSucceeded` to your server and [validate it server-side](https://developer.apple.com/library/ios/documentation/GameKit/Reference/GKLocalPlayer_Ref/#//apple_ref/occ/instm/GKLocalPlayer/generateIdentityVerificationSignatureWithCompletionHandler:)
-5. Make sure callbacks have `[MonoPInvokeCallback(typeof(GameCenterSignature.OnSucceeded))]` and `[MonoPInvokeCallback(typeof(GameCenterSignature.OnFailed))]` attributes.
+5. Make sure the callbacks are static and have the `[MonoPInvokeCallback(typeof(GameCenterSignature.OnSucceeded))]` and `[MonoPInvokeCallback(typeof(GameCenterSignature.OnFailed))]` attributes.
 
 # Compiling
 

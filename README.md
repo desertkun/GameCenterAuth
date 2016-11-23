@@ -8,6 +8,10 @@ Unity Native implementation for Game Center server-side validation. Make possibl
 4. In case of success, pass arguments from `OnSucceeded` to your server and [validate it server-side](https://developer.apple.com/library/ios/documentation/GameKit/Reference/GKLocalPlayer_Ref/#//apple_ref/occ/instm/GKLocalPlayer/generateIdentityVerificationSignatureWithCompletionHandler:)
 5. Make sure callbacks have `[MonoPInvokeCallback(typeof(GameCenterSignature.OnSucceeded))]` and `[MonoPInvokeCallback(typeof(GameCenterSignature.OnFailed))]` attributes.
 
+# Compiling
+
+xcodebuild -project Xcode/GameCenterAuth.xcodeproj -alltargets ARCHS='arm64 armv7 armv7s' IPHONEOS_DEPLOYMENT_TARGET='8.0'
+
 # Usage Example
 
 ```
@@ -18,7 +22,7 @@ using AOT;
 namespace Online
 {
     #if (UNITY_IOS)
-    public class AutorizeGameCenter : MonoBehaviour
+    public class AuthorizeGameCenter : MonoBehaviour
     {
         [MonoPInvokeCallback(typeof(GameCenterSignature.OnSucceeded))]
         private static void OnSucceeded(
@@ -29,7 +33,7 @@ namespace Online
             string playerID,
             string bundleID)
         {
-            Debug.Log("Succeeded autorization to gamecenter: \n" +
+            Debug.Log("Succeeded authorization to gamecenter: \n" +
                 "PublicKeyUrl=" + PublicKeyUrl + "\n" +
                 "timestamp=" + timestamp + "\n" +
                 "signature=" + signature + "\n" + 
@@ -41,14 +45,14 @@ namespace Online
         [MonoPInvokeCallback(typeof(GameCenterSignature.OnFailed))]
         private static void OnFailed(string reason)
         {
-            Debug.Log("Failed to autentificate gamecenter:" + reason);
+            Debug.Log("Failed to authenticate with gamecenter:" + reason);
         }
 
-        private void OnLocalAuthentificateResult(bool success)
+        private void OnLocalAuthenticateResult(bool success)
         {
             if (success)
             {
-                Debug.Log("LocalAuthentificate success!");
+                Debug.Log("LocalAuthenticate success!");
 
                 GameCenterSignature.Generate(OnSucceeded, OnFailed);
             }
@@ -58,7 +62,7 @@ namespace Online
             }
         }
 
-        public void Proccess()
+        public void Process()
         {
             if (Social.localUser.authenticated)
             {
@@ -66,7 +70,7 @@ namespace Online
             }
             else
             {
-                Social.localUser.Authenticate(OnLocalAuthentificateResult);
+                Social.localUser.Authenticate(OnLocalAuthenticateResult);
             }
         }
     }

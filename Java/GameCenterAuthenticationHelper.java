@@ -1,8 +1,8 @@
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.net.URL;
@@ -15,11 +15,8 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.util.Base64;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
 
 /**
  * {@link GameCenterAuthenticationHelper} implements server-side identity verification @see
@@ -27,68 +24,30 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Johno Crawford (johno@hellface.com)
  */
+@Component
 public class GameCenterAuthenticationHelper {
 
     private static final Logger logger = LogManager.getLogger(GameCenterAuthenticationHelper.class);
 
-    private static final long REFRESH_PERIOD = TimeUnit.MINUTES.toMillis(30);
+    private static final String APPLE_HOST_SUFFIX = "apple.com";
 
-    private final ConcurrentMap<String, Certificate> refreshingCache = new ConcurrentHashMap<>();
-
-    private Timer refreshTimer;
-
+    private final ConcurrentMap<String, Certificate> cache = new ConcurrentHashMap<>();
+    
     @PostConstruct
     public void initialize() {
         try {
-            String publicKeyUrl = "https://static.gc.apple.com/public-key/gc-prod-2.cer";
-            refreshingCache.put(publicKeyUrl, loadCertificate(publicKeyUrl));
+            String publicKeyUrl = "https://static.gc.apple.com/public-key/gc-prod-3.cer";
+            cache.put(publicKeyUrl, loadCertificate(publicKeyUrl));
         } catch (CertificateException | IOException e) {
-            logger.error("Failed to preload certificate, Game Center authentication may fail", e);
-        }
-
-        refreshTimer = new Timer(getClass().getName() + "-refreshTimer", true);
-        refreshTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                try {
-                    for (String url : refreshingCache.keySet()) {
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("Refreshing certificate for " + url);
-                        }
-                        try {
-                            Certificate certificate = loadCertificate(url);
-                            refreshingCache.put(url, certificate);
-                        } catch (CertificateException | IOException e) {
-                            logger.error("Failed refreshing certificate for " + url, e);
-                        }
-                    }
-                } catch (RuntimeException e) {
-                    logger.error("Error running refresh", e);
-                }
-            }
-        }, REFRESH_PERIOD, REFRESH_PERIOD);
-    }
-
-    @PreDestroy
-    public void shutdown() {
-        if (refreshTimer != null) {
-            refreshTimer.cancel();
-            refreshTimer = null;
+            logger.error("Failed to load certificate, Game Center authentication may fail", e);
         }
     }
-
-    private static final String APPLE_HOST_SUFFIX = "apple.com";
 
     public boolean isAuthenticated(String publicKeyUrl, String playerId, String bundleId, String timestamp, String signature, String salt) {
         if (logger.isDebugEnabled()) {
             logger.debug("Authenticating with " + publicKeyUrl + ", timestamp " + timestamp + ", signature " + signature + ", salt " + salt + ", playerId " + playerId + ", bundle " + bundleId);
         }
         try {
-            int index = publicKeyUrl.indexOf("?");
-            if (index != -1) {
-                publicKeyUrl = publicKeyUrl.substring(0, index);
-            }
-
             URL url = new URL(publicKeyUrl);
             if (!url.getHost().endsWith(APPLE_HOST_SUFFIX)) {
                 logger.warn(publicKeyUrl + " is not trusted!");
@@ -97,8 +56,8 @@ public class GameCenterAuthenticationHelper {
 
             byte[] decodedSalt = Base64.getDecoder().decode(salt);
             byte[] decodedSignature = Base64.getDecoder().decode(signature);
-
-            Certificate certificate = refreshingCache.computeIfAbsent(publicKeyUrl, (k) -> {
+    
+            Certificate certificate = cache.computeIfAbsent(getCacheKeyFromUrl(publicKeyUrl), (k) -> {
                 try {
                     return loadCertificate(k);
                 } catch (CertificateException | IOException e) {
@@ -114,11 +73,23 @@ public class GameCenterAuthenticationHelper {
             Signature validatingSignature = Signature.getInstance("SHA256withRSA");
             validatingSignature.initVerify(certificate);
             validatingSignature.update(payload);
-            return validatingSignature.verify(decodedSignature);
+            boolean ok = validatingSignature.verify(decodedSignature);
+            if (!ok) {
+                logger.warn("Signature validation failed with " + publicKeyUrl + ", timestamp " + timestamp + ", signature " + signature + ", salt " + salt + ", playerId " + playerId + ", bundle " + bundleId);
+            }
+            return ok;
         } catch (Throwable e) {
-            logger.error("Game Center authentication failed", e);
+            logger.error("Game Center authentication failed with " + publicKeyUrl + ", timestamp " + timestamp + ", signature " + signature + ", salt " + salt + ", playerId " + playerId + ", bundle " + bundleId, e);
         }
         return false;
+    }
+    
+    private String getCacheKeyFromUrl(String url) {
+        int index = url.indexOf("?");
+        if (index != -1) {
+            return url.substring(0, index);
+        }
+        return url;
     }
 
     private static byte[] concat(byte[]... arrays) {

@@ -12,6 +12,7 @@ namespace Online
             string signature,
             string salt,
             string playerID,
+            string alias,
             string bundleID
         );
 

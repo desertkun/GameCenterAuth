@@ -8,9 +8,11 @@ Unity Native implementation for Game Center server-side validation. Make possibl
 4. In case of success, pass arguments from `OnSucceeded` to your server and [validate it server-side](https://developer.apple.com/library/ios/documentation/GameKit/Reference/GKLocalPlayer_Ref/#//apple_ref/occ/instm/GKLocalPlayer/generateIdentityVerificationSignatureWithCompletionHandler:)
 5. Make sure the callbacks are static and have the `[MonoPInvokeCallback(typeof(GameCenterSignature.OnSucceeded))]` and `[MonoPInvokeCallback(typeof(GameCenterSignature.OnFailed))]` attributes.
 
-# Compiling
+# How To Recompile
 
+```
 xcodebuild -project Xcode/GameCenterAuth.xcodeproj -alltargets ARCHS='arm64 armv7 armv7s' IPHONEOS_DEPLOYMENT_TARGET='8.0'
+```
 
 # Usage Example
 
@@ -31,6 +33,7 @@ namespace Online
             string signature,
             string salt,
             string playerID,
+            string alias,
             string bundleID)
         {
             Debug.Log("Succeeded authorization to gamecenter: \n" +
@@ -39,6 +42,7 @@ namespace Online
                 "signature=" + signature + "\n" + 
                 "salt=" + salt + "\n" +
                 "playerID=" + playerID + "\n" +
+                "alias=" + alias + "\n" +
                 "bundleID=" + bundleID);
         }
 

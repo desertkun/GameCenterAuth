@@ -8,6 +8,7 @@ typedef void ( __stdcall *GenerateSucceeded )(
     const char* signature,
     const char* salt,
     const char* playerID,
+    const char* alias,
     const char* bundleID
 );
 

@@ -20,6 +20,7 @@ void GenerateIdentityVerificationSignature(GenerateSucceeded OnSucceeded, Genera
                 NSString *signatureb64 = [signature base64EncodedStringWithOptions:0];
                 NSString *saltb64 = [salt base64EncodedStringWithOptions:0];
                 NSString *playerId = localPlayer.playerID;
+                NSString *alias = localPlayer.alias;
                 NSString *bundleId = [[NSBundle mainBundle] bundleIdentifier];
      
                 OnSucceeded(
@@ -28,6 +29,7 @@ void GenerateIdentityVerificationSignature(GenerateSucceeded OnSucceeded, Genera
                     [signatureb64 UTF8String],
                     [saltb64 UTF8String],
                     [playerId UTF8String],
+                    [alias UTF8String],
                     [bundleId UTF8String]
                 );
             }
